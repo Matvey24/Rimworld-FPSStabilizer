@@ -1,5 +1,7 @@
 # RimWorld-FPSStabilizer
 
+![alt text](about/preview.png)
+
 RimWorld mod that overrides "worst allowed fps" from 22 fps to unity target frame rate.
 
 This softly reduces amount of ticks per frame to stabilize FPS in cost of slightly lower TPS
