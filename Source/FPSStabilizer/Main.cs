@@ -12,42 +12,60 @@ namespace FPSStabilizer
     [StaticConstructorOnStartup]
     public static class Main
     {
-        public static float frametime;
         static Main(){
-            frametime = 1000f / Application.targetFrameRate;
-
             Harmony harm = new Harmony("matvey24.FPSStabilizer");
             MethodBase original = AccessTools.Method(typeof(TickManager), nameof(TickManager.TickManagerUpdate));
             HarmonyMethod transpiler = new HarmonyMethod(typeof(Main), nameof(Transpiler));
             try
             {
-                MethodInfo methodInfo = harm.Patch(original, null, null, transpiler, null);
+                harm.Patch(original, null, null, transpiler, null);
             }
             catch (Exception e)
             {
                 Log.Error($"Error during patching {original} with: transpliter {transpiler?.method}\n{e}");
             }
         }
+
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            bool patched_something = false;
-            var l = instructions.ToList();
-            foreach (var c in l)
+            CodeInstruction to_patch = null;
+
+            foreach (var c in instructions)
             {
-                if(!patched_something && c.opcode == OpCodes.Ldc_R4 && c.operand is float)
+                if (c.opcode != OpCodes.Ldc_R4 || (float)c.operand < 10)
+                    continue;
+
+                if (to_patch != null)
                 {
-                    if ((float)c.operand > 10) {
-                        // this instruction is probably milliseconds
-                        c.operand = frametime;
-                        patched_something = true;
-                        Log.Message("FPSStabilier patched to " + 1000 / frametime + " FPS");
-                    }
+                    Log.Error("FPSStabilier not patched, two similar instructions was found");
+                    return instructions;
                 }
-                yield return c;
+                
+                to_patch = c;
             }
-            if (!patched_something) {
-                Log.Error("FPSStabilier not patched, instruction was not found");
+            if (to_patch == null) {
+                Log.Error("FPSStabilier not patched, no any instruction was found");
+                return instructions;
             }
+
+            int rate = Application.targetFrameRate;
+            float time = 1000f / rate;
+
+            if (rate == 0) 
+                // in my mind 0 can happen, if app is stopped (waiting mode)
+                time = 16;
+
+            if(rate < 0)
+                // theoretically, -1 can be, if target framerate is unlimited, but not sure
+                time = 1;
+
+            if (rate > 1000)
+                // prevent (int)frametime to be 0
+                time = 1;
+
+            to_patch.operand = time;
+            Log.Message("FPSStabilier patched to " + 1000f / time + " FPS");
+            return instructions;
         }
     }
 }
