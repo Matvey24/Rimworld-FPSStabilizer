@@ -6,6 +6,8 @@ RimWorld mod that overrides "worst allowed fps" from 22 fps to unity target fram
 
 This softly reduces amount of ticks per frame to stabilize FPS in cost of slightly lower TPS
 
+Thanks to [Cosmic Lustyness](https://steamcommunity.com/id/cosmicgoddess69) for TPS&FPS mod, that helps to make preview.
+
 ## License
 Assets are [CC-BY-NC-SA](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
