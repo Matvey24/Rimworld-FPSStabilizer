@@ -2,7 +2,8 @@
 
 ![alt text](About/preview.png)
 
-RimWorld mod that overrides "worst allowed fps" from 22 fps to unity target frame rate.
+RimWorld mod that overrides "worst allowed fps" from 22 fps to 60.
+The value is editable in settings.
 
 This softly reduces amount of ticks per frame to stabilize FPS in cost of slightly lower TPS
 
