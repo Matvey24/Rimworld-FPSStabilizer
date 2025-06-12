@@ -9,7 +9,8 @@
     </supportedVersions>
     <packageId>matvey24.FPSStabilizer</packageId>
 
-    <description>RimWorld mod that overrides "worst allowed fps" from 22 fps to unity target frame rate.
+    <description>RimWorld mod that overrides "worst allowed fps" from 22 fps to 60.
+The value is editable in settings.
 This softly reduces amount of ticks per frame to stabilize FPS in cost of slightly lower TPS
     </description>
     <loadAfter>
