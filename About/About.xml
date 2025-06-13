@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-    <name>FPSStabilizer</name>
+    <name>FPS Stabilizer</name>
     <author>Matvey24</author>
     <supportedVersions>
         <li>1.6</li>
@@ -10,11 +10,12 @@
     <packageId>matvey24.FPSStabilizer</packageId>
 
     <description>RimWorld mod that overrides "worst allowed fps" from 22 fps to 60.
-The value is editable in settings.
 This softly reduces amount of ticks per frame to stabilize FPS in cost of slightly lower TPS
+The value "60" is editable in settings.
     </description>
     <loadAfter>
     <li>brrainz.harmony</li>
+    <li>Ludeon.RimWorld</li>
     </loadAfter>
     <modDependencies>
         <li>

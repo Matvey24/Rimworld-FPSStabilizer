@@ -11,13 +11,12 @@ namespace FPSStabilizer
     class FPSStabilizer : Mod
     {
         Settings settings;
-        HarmonyPatcher patcher;
 
         public FPSStabilizer(ModContentPack content) : base(content)
         {
-            patcher = new HarmonyPatcher();
+            HarmonyPatcher.init();
             settings = GetSettings<Settings>();
-            patcher.patch(settings.target_fps);
+            Log.Message($"FPSStabilizer v1.1 loaded, patcher message: {HarmonyPatcher.message}, fps set to {1000 / HarmonyPatcher.target_frametime}");
         }
         public override string SettingsCategory()
         {
@@ -26,10 +25,7 @@ namespace FPSStabilizer
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
-            if(settings.DrawSettings(inRect))
-            {
-                patcher.patch(settings.target_fps);
-            }
+            settings.DrawSettings(inRect);
         }
     }
 }

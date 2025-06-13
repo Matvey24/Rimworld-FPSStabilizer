@@ -10,40 +10,18 @@ namespace FPSStabilizer
 {
     class HarmonyPatcher
     {
-        Harmony harm;
-        MethodBase original;
-        HarmonyMethod transpiler;
+        public static float target_frametime = 16;
+        public static string message = "";
 
-        MethodInfo info;
-
-        public static string message;
-        public static bool patchable
+        public static void init()
         {
-            get {
-                return instruction_idx >= 0;
-            } 
-        }
+            Harmony harm = new Harmony("matvey24.FPSStabilizer");
+            MethodBase original = AccessTools.Method(typeof(TickManager), nameof(TickManager.TickManagerUpdate));
+            HarmonyMethod transpiler = new HarmonyMethod(typeof(HarmonyPatcher), nameof(Transpiler));
 
-        static int instruction_idx;
-        static float fps;
-
-        public HarmonyPatcher()
-        {
-            harm = new Harmony("matvey24.FPSStabilizer");
-            original = AccessTools.Method(typeof(TickManager), nameof(TickManager.TickManagerUpdate));
-            transpiler = new HarmonyMethod(typeof(HarmonyPatcher), nameof(Transpiler));
-            instruction_idx = -1;
-            message = null;
-            info = null;
-        }
-        public void patch(float FPS)
-        {
             try
             {
-                if (info != null)
-                    harm.Unpatch(original, info);
-                fps = FPS;
-                info = harm.Patch(original, null, null, transpiler, null);
+                harm.Patch(original, null, null, transpiler, null);
             }
             catch (Exception e)
             {
@@ -51,10 +29,9 @@ namespace FPSStabilizer
             }
         }
 
-        public static void find_instruction(IEnumerable<CodeInstruction> instructions)
+        public static int find_instruction(IEnumerable<CodeInstruction> instructions)
         {
             int idx = -1;
-
             for(int i = 0; i < instructions.Count(); ++i) {
                 CodeInstruction c = instructions.ElementAt(i);
                 if (c.opcode != OpCodes.Ldc_R4 || (float)c.operand < 10)
@@ -63,8 +40,7 @@ namespace FPSStabilizer
                 if (idx != -1)
                 {
                     message = "Can not patch, two similar instructions was found";
-                    instruction_idx = -2;
-                    return;
+                    return -1;
                 }
 
                 idx = i;
@@ -72,26 +48,21 @@ namespace FPSStabilizer
             if (idx == -1)
             {
                 message = "Can not patch, no instruction was found";
-                instruction_idx = -2;
-                return;
+                return -1;
             }
-            instruction_idx = idx;
+            return idx;
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            if(instruction_idx == -1)
-            {
-                find_instruction(instructions);
-            }
-            if (instruction_idx == -2)
+            int idx = find_instruction(instructions);
+            if (idx == -1)
                 return instructions;
-            float time = 1000f / fps;
 
-            CodeInstruction to_patch = instructions.ElementAt(instruction_idx);
-            to_patch.operand = time;
-            message = "Patched to " + 1000f / time + " FPS";
-
+            CodeInstruction to_patch = instructions.ElementAt(idx);
+            to_patch.opcode = OpCodes.Ldsfld;
+            to_patch.operand = AccessTools.Field(typeof(HarmonyPatcher), "target_frametime");
+            message = "Patched";
             return instructions;
         }
     }

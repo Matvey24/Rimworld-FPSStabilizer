@@ -63,4 +63,7 @@
     <Compile Include="Settings.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y "$(TargetPath)" "S(TargetPath)\..\..\..\..\Assemblies\"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

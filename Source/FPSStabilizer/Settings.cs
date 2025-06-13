@@ -11,7 +11,22 @@ namespace FPSStabilizer
 {
     class Settings : ModSettings
     {
-        public float target_fps = 60;
+
+        float target_fps;
+
+        float TARGET_FPS
+        {
+            set
+            {
+                target_fps = value;
+                HarmonyPatcher.target_frametime = 1000f / value;
+            }
+            get
+            {
+                return target_fps;
+            }
+        }
+
         public bool input_method = false;
         bool prev_input_method = false;
 
@@ -21,41 +36,36 @@ namespace FPSStabilizer
             base.ExposeData();
             Scribe_Values.Look(ref target_fps, "target_fps", 60);
             Scribe_Values.Look(ref input_method, "input_method", false);
+            TARGET_FPS = target_fps;
         }
-        public bool DrawSettings(Rect inRect)
+        public void DrawSettings(Rect inRect)
         {
             var list = new Listing_Standard();
             list.Begin(inRect);
 
-            string label = string.Format("Target FPS {0:F1}", target_fps);
+            string label = $"Target FPS {target_fps:0.00}";
 
             if (input_method)
             {
                 if (!prev_input_method)
-                    text_input_buffer = "" + target_fps;
+                    text_input_buffer = "" + TARGET_FPS;
                 list.TextFieldNumericLabeled(label, ref target_fps, ref text_input_buffer, 0, 10000);
+                TARGET_FPS = target_fps;
             }
             else
-                target_fps = RoundFPS(list.SliderLabeled(
+                TARGET_FPS = RoundFPS(list.SliderLabeled(
                     label,
-                    target_fps, 0, 120, 0.3f,
-                    "Rimworld default is 22"));
-
+                    TARGET_FPS, 0, 120, 0.3f, ""));
+            
+            Log.Message(HarmonyPatcher.message);
             prev_input_method = input_method;
-
-            bool patchable = HarmonyPatcher.patchable;
-            bool apply;
-            if (patchable)
-                apply = list.ButtonTextLabeled(HarmonyPatcher.message, "Apply");
-            else
-            {
-                list.SubLabel(HarmonyPatcher.message, 1);
-                apply = false;
-            }
+           
+            list.SubLabel($"Patcher Message: {HarmonyPatcher.message}", 1);
             list.CheckboxLabeled("Text input", ref input_method);
-
+            list.SubLabel("It is better to understand in frametime, 60 -> 16ms. This value determines, how long your cpu will do ticks until it switches to frames. " +
+                "Usually you do not want Target FPS to be higher than your game maximum FPS, because it would make cpu just wait sometimes. " +
+                "RimWorld default is 22. 60 should always work nice. Value applies automatically.", 1);
             list.End();
-            return apply;
         }
         float RoundFPS(float fps)
         {
