@@ -12,20 +12,7 @@ namespace FPSStabilizer
     class Settings : ModSettings
     {
 
-        float target_fps;
-
-        float TARGET_FPS
-        {
-            set
-            {
-                target_fps = value;
-                HarmonyPatcher.target_frametime = 1000f / value;
-            }
-            get
-            {
-                return target_fps;
-            }
-        }
+        float target_fps = 60;
 
         public bool input_method = false;
         bool prev_input_method = false;
@@ -36,7 +23,7 @@ namespace FPSStabilizer
             base.ExposeData();
             Scribe_Values.Look(ref target_fps, "target_fps", 60);
             Scribe_Values.Look(ref input_method, "input_method", false);
-            TARGET_FPS = target_fps;
+            SetFrametime();
         }
         public void DrawSettings(Rect inRect)
         {
@@ -48,24 +35,28 @@ namespace FPSStabilizer
             if (input_method)
             {
                 if (!prev_input_method)
-                    text_input_buffer = "" + TARGET_FPS;
+                    text_input_buffer = "" + target_fps;
                 list.TextFieldNumericLabeled(label, ref target_fps, ref text_input_buffer, 0, 10000);
-                TARGET_FPS = target_fps;
             }
             else
-                TARGET_FPS = RoundFPS(list.SliderLabeled(
+                target_fps = RoundFPS(list.SliderLabeled(
                     label,
-                    TARGET_FPS, 0, 120, 0.3f, ""));
-            
-            Log.Message(HarmonyPatcher.message);
+                    target_fps, 0, 120, 0.3f, ""));
+
+            SetFrametime();
+
             prev_input_method = input_method;
            
             list.SubLabel($"Patcher Message: {HarmonyPatcher.message}", 1);
             list.CheckboxLabeled("Text input", ref input_method);
-            list.SubLabel("It is better to understand in frametime, 60 -> 16ms. This value determines, how long your cpu will do ticks until it switches to frames. " +
+            list.SubLabel("This value determines, how long your cpu will do ticks until it switches to frames. " +
                 "Usually you do not want Target FPS to be higher than your game maximum FPS, because it would make cpu just wait sometimes. " +
                 "RimWorld default is 22. 60 should always work nice. Value applies automatically.", 1);
             list.End();
+        }
+        void SetFrametime()
+        {
+            HarmonyPatcher.target_frametime = 1000 / target_fps;
         }
         float RoundFPS(float fps)
         {

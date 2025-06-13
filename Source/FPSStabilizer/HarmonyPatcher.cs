@@ -10,7 +10,7 @@ namespace FPSStabilizer
 {
     class HarmonyPatcher
     {
-        public static float target_frametime = 16;
+        public static float target_frametime = 1000 / 60f;
         public static string message = "";
 
         public static void init()
@@ -62,7 +62,7 @@ namespace FPSStabilizer
             CodeInstruction to_patch = instructions.ElementAt(idx);
             to_patch.opcode = OpCodes.Ldsfld;
             to_patch.operand = AccessTools.Field(typeof(HarmonyPatcher), "target_frametime");
-            message = "Patched";
+            message = "Patched successfully";
             return instructions;
         }
     }
